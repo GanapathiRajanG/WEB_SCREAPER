@@ -14,8 +14,8 @@ This project has been successfully converted from Flask to Django. NeoScraper is
 
 
  **Access the Application**:
-   - Main App: http://127.0.0.1:8000/
-   - Admin Panel: http://127.0.0.1:8000/admin/
+   http://127.0.0.1:8000/
+   http://127.0.0.1:8000/admin/
 
 
 
