@@ -1,0 +1,647 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoScraper - Advanced Web Content Extractor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f7ff;
+            --secondary: #7b2dff;
+            --dark: #0a0a1a;
+            --light: #f0f0f0;
+            --accent: #ff2d7b;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--dark), #1a1a2e);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(0, 247, 255, 0.6), 0 0 30px rgba(0, 247, 255, 0.4);
+            }
+        }
+
+        .scraper-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .scraper-form::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+            z-index: -1;
+            border-radius: 15px;
+            opacity: 0.7;
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .scraper-form-inner {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        #url {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light);
+            font-size: 1rem;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        #url:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 247, 255, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn:hover::after {
+            transform: translateX(100%);
+        }
+
+        .output-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .output-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .output-section {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .output-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .output-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .output-list {
+            list-style: none;
+        }
+
+        .output-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .output-list li:hover {
+            background: rgba(0, 247, 255, 0.05);
+            padding-left: 10px;
+        }
+
+        .output-list li:last-child {
+            border-bottom: none;
+        }
+
+        .history-section {
+            margin-top: 3rem;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .history-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .history-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-card .date {
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 247, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            color: var(--accent);
+            background: rgba(255, 45, 123, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--accent);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20%, 60% {
+                transform: translateX(-5px);
+            }
+            40%, 80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(0, 247, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(30px);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(50vw, 50vh) rotate(180deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .scraper-form {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-element" style="width: 300px; height: 300px; top: 10%; left: 20%;"></div>
+        <div class="floating-element" style="width: 200px; height: 200px; top: 60%; left: 70%; animation-delay: -5s;"></div>
+        <div class="floating-element" style="width: 150px; height: 150px; top: 30%; left: 80%; animation-delay: -10s;"></div>
+    </div>
+
+    <div class="container">
+        {% csrf_token %}
+        <header>
+            <h1>NeoScraper <i class="fas fa-robot"></i></h1>
+            <p>Extract key information from any website with AI-powered analysis</p>
+        </header>
+
+        <div class="scraper-form">
+            <div class="scraper-form-inner">
+                <input type="text" id="url" placeholder="Enter website URL (e.g., https://example.com)" autocomplete="off">
+                <button class="btn" onclick="scrapeWebsite()">
+                    <i class="fas fa-search"></i> Analyze
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing website structure and content...</p>
+        </div>
+
+        <div id="output"></div>
+
+        <div class="history-section">
+            <h2><i class="fas fa-history"></i> Recent Analyses</h2>
+            <div class="history-list" id="historyList">
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get CSRF token from DOM
+        function getCSRFToken() {
+            const tokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+            return tokenElement ? tokenElement.value : '';
+        }
+
+        // Generate floating elements dynamically
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingContainer = document.querySelector('.floating-elements');
+            for (let i = 0; i < 5; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.width = `${Math.random() * 100 + 100}px`;
+                element.style.height = element.style.width;
+                element.style.top = `${Math.random() * 100}%`;
+                element.style.left = `${Math.random() * 100}%`;
+                element.style.animationDelay = `-${Math.random() * 20}s`;
+                element.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                floatingContainer.appendChild(element);
+            }
+
+            // Load recent scrapes
+            loadRecentScrapes();
+        });
+
+        async function scrapeWebsite() {
+            const url = document.getElementById('url').value.trim();
+            const outputDiv = document.getElementById('output');
+            const loadingDiv = document.getElementById('loading');
+
+            if (!url) {
+                showError('Please enter a website URL');
+                return;
+            }
+
+            // Clear previous output
+            outputDiv.innerHTML = '';
+            loadingDiv.style.display = 'block';
+
+            try {
+                const csrftoken = getCSRFToken();
+                console.log('Making request to:', '/scrape/');
+                console.log('CSRF Token:', csrftoken);
+
+                const response = await fetch('/scrape/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+                loadingDiv.style.display = 'none';
+
+                if (!data.success) {
+                    showError(data.error || 'Failed to scrape the website');
+                    return;
+                }
+
+                displayResults(data);
+                loadRecentScrapes(); // Refresh history
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                console.error('Detailed error:', error);
+                showError(`Network error: ${error.message}. Please try again.`);
+            }
+        }
+
+        function displayResults(data) {
+            const outputDiv = document.getElementById('output');
+            
+            // Clear any previous error
+            const existingError = outputDiv.querySelector('.error-message');
+            if (existingError) existingError.remove();
+
+            // Create output container
+            let outputHTML = `
+                <div class="output-container">
+                    <div class="output-section" style="animation-delay: 0.1s">
+                        <h2><i class="fas fa-heading"></i> Headings Structure</h2>
+                        <ul class="output-list">
+                            ${data.content.headings.map(heading => `
+                                <li>
+                                    <span style="color: ${getHeadingColor(heading.level)}; font-weight: bold">
+                                        H${heading.level}:
+                                    </span> 
+                                    ${heading.text}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="output-section" style="animation-delay: 0.2s">
+                        <h2><i class="fas fa-bold"></i> Key Phrases</h2>
+                        <ul class="output-list">
+                            ${data.content.bold_texts.map(text => `
+                                <li>${text}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="output-section" style="animation-delay: 0.3s">
+                        <h2><i class="fas fa-paragraph"></i> Important Content</h2>
+                        <ul class="output-list">
+                            ${data.content.important_paragraphs.map(para => `
+                                <li>${para}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="output-section" style="animation-delay: 0.4s">
+                        <h2><i class="fas fa-image"></i> Images with Alt Text</h2>
+                        <ul class="output-list">
+                            ${data.content.images.length > 0 ? 
+                                data.content.images.slice(0, 5).map(img => `
+                                    <li>
+                                        <strong>${img.alt}</strong><br>
+                                        <small>${truncate(img.src, 50)}</small>
+                                    </li>
+                                `).join('') : 
+                                '<li>No images with alt text found</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="output-section" style="animation-delay: 0.5s; margin-top: 2rem">
+                    <h2><i class="fas fa-info-circle"></i> Page Metadata</h2>
+                    <ul class="output-list">
+                        <li><strong>Title:</strong> ${data.metadata.title || 'Not available'}</li>
+                        <li><strong>Description:</strong> ${data.metadata.description || 'Not available'}</li>
+                        <li><strong>Keywords:</strong> ${data.metadata.keywords || 'Not available'}</li>
+                        <li><strong>URL:</strong> <a href="${data.metadata.url}" target="_blank">${data.metadata.url}</a></li>
+                    </ul>
+                </div>
+            `;
+
+            outputDiv.innerHTML = outputHTML;
+        }
+
+        function getHeadingColor(level) {
+            const colors = ['#00f7ff', '#7b2dff', '#ff2d7b', '#2dff7b', '#ff7b2d', '#f7ff00'];
+            return colors[level - 1] || '#ffffff';
+        }
+
+        function showError(message) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i> ${message}
+                </div>
+            `;
+        }
+
+        function truncate(text, length) {
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+
+        async function loadRecentScrapes() {
+            try {
+                console.log('Loading recent scrapes...');
+                const response = await fetch('/history/');
+                console.log('History response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('History data:', data);
+
+                const historyList = document.getElementById('historyList');
+                if (data && data.length > 0) {
+                    historyList.innerHTML = data.map(item => `
+                        <div class="history-card" onclick="loadFromHistory('${item.metadata.url}')"
+                             style="animation-delay: ${Math.random() * 0.5}s">
+                            <h3 title="${item.metadata.title || 'No title'}">
+                                ${truncate(item.metadata.title || 'No title', 30)}
+                            </h3>
+                            <p>${truncate(item.metadata.description || 'No description', 60)}</p>
+                            <p class="date">
+                                <i class="far fa-clock"></i> ${new Date(item.created_at).toLocaleString()}
+                            </p>
+                        </div>
+                    `).join('');
+                } else {
+                    historyList.innerHTML = '<p>No scraping history yet. Try analyzing a website!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '<p>Error loading history.</p>';
+            }
+        }
+
+        function loadFromHistory(url) {
+            document.getElementById('url').value = url;
+            scrapeWebsite();
+        }
+    </script>
+</body>
+</html>
